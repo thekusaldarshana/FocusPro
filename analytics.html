@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>FocusPro Analytics</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <style>
+        body { 
+            background-color: #0a0a0a; 
+            color: #ffffff; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px;
+        }
+        .card {
+            background-color: #171717;
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .header{
+            display: flex;
+            justify-content: space-between;
+            position: relative;
+        }
+        .return-to-app{
+            background-color: #262626; 
+            color: white; 
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .return-to-app:hover{
+            background-color: #2b2b2b;
+        }
+        .chart-container {
+            height: 60vh;
+            width: 100%;
+            margin-top: 20px;
+        }
+        h2 {
+            color: #efefef;
+        }
+        .filter-container {
+            display: flex;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .nav-btn {
+            background-color: #262626;
+            color: #efefef;
+            border: 1px solid #333;
+            border-radius: 6px;
+            margin-right: 5px;
+            padding: 6px 12px;
+            cursor: pointer;
+            width: 40px;
+            text-align: center;
+        }
+        .nav-btn:hover {
+            background-color: #333;
+        }
+        .nav-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .stats-card {
+            background-color: #262626;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        .stats-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #0dd693;
+        }
+        .stats-label {
+            font-size: 14px;
+            color: #a1a1aa;
+        }
+        .flatpickr-input {
+            background-color: #262626 !important;
+            color: white !important;
+            border-color: #333 !important;
+            margin-left: 5px;
+        }
+        .flatpickr-day:hover {
+            background-color: #3b82f6 !important;
+        }
+        .flatpickr-day.selected {
+            background-color: #3b82f6 !important;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-right: 15px;
+            cursor: pointer;
+        }
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+            margin-right: 6px;
+        }
+        .legend-text {
+            font-size: 13px;
+            color: #a1a1aa;
+        }
+        .legend-item.inactive {
+            opacity: 0.5;
+        }
+        .legend-container {
+            display: flex;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+        .category-toggle-container {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin-left: 10px;
+        }
+        .category-toggle {
+            background-color: #262626;
+            color: #a1a1aa;
+            border: 1px solid #333;
+            border-radius: 16px;
+            padding: 5px 12px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        #category-toggleG.active {
+            border-color: #a37ef7;
+            color: #a37ef7;
+        }
+        #category-toggleM.active {
+            border-color: #3b82f6;
+            color: #3b82f6;
+        }
+        #category-toggleP.active {
+            border-color: #f2f763;
+            color: #f2f763;
+        }
+        #category-toggleI.active {
+            border-color: #f5517a;
+            color: #f5517a;
+        }
+        .category-toggle.total {
+            color: #0dd693;
+            cursor: default;
+        }
+        .category-progress-section {
+        margin-top: 30px;
+        padding: 20px;
+        background-color: #171717;
+        border-radius: 12px;
+        border: 1px solid #333;
+    }
+    
+    .progress-bars-container {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .progress-item {
+        width: 100%;
+    }
+    
+    .progress-label {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 5px;
+    }
+    
+    .category-name {
+        color: #a1a1aa;
+        font-size: 14px;
+    }
+    
+    .category-percent {
+        color: #efefef;
+        font-size: 14px;
+    }
+    
+    .progress {
+        height: 8px;
+        background-color: #262626;
+        border-radius: 4px;
+        overflow: hidden;
+    }
+    
+    .progress-bar {
+        height: 100%;
+        border-radius: 4px;
+        transition: width 0.6s ease;
+    }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="header">
+                <h2 class="text-center mb-4">FocusPro Analytics</h2>
+
+                <!-- Open FocusPro -->
+                <div style="text-align: center;">
+                    <button class="return-to-app" onclick="returnToApp()">
+                        ↩  Return to App
+                    </button>
+                </div>
+            </div>    
+            
+            <!-- Stats Summary -->
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="stats-card">
+                        <div class="stats-value" id="total-hours">0h</div>
+                        <div class="stats-label">Total Focus Time</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stats-card">
+                        <div class="stats-value" id="daily-avg">0h</div>
+                        <div class="stats-label">Daily Average</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stats-card">
+                        <div class="stats-value" id="goal-progress">0%</div>
+                        <div class="stats-label">Goal Completion</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Filter Controls -->
+            <div class="filter-container">
+                <div class="d-flex align-items-center">
+                    <button class="nav-btn" id="prev-period">&lt;</button>
+                    <button class="nav-btn" id="next-period">&gt;</button>
+                </div>
+                
+                <select id="time-filter" class="form-select" style="background-color: #262626; color: white; border-color: #333; width: 140px;">
+                    <option value="week" selected>This Week</option>
+                    <option value="month">This Month</option>
+                    <option value="year">This Year</option>
+                    <option value="custom">Custom Range</option>
+                </select>
+                
+                <div id="date-range-container">
+                    <input type="text" id="date-range" class="form-control" placeholder="Select date range" 
+                           style="background-color: #262626; color: white; border-color: #333; width: 220px;">
+                </div>
+                
+                <div class="category-toggle-container">
+                    <div class="category-toggle total">Total</div>
+                    <div class="category-toggle" id="category-toggleG" data-category="General">General</div>
+                    <div class="category-toggle" id="category-toggleM" data-category="Maths">Maths</div>
+                    <div class="category-toggle" id="category-toggleP" data-category="Physics">Physics</div>
+                    <div class="category-toggle" id="category-toggleI" data-category="ICT">ICT</div>
+                </div>
+            </div>
+            
+            <!-- Chart -->
+            <div class="chart-container">
+                <canvas id="progress-chart"></canvas>
+            </div>
+
+
+            <!-- Linear Progresses -->
+            <div class="category-progress-section">
+                <h3 class="mb-3" style="color: #efefef;">Focus Distribution</h3>
+                <div class="progress-bars-container">
+                    <!-- General Progress -->
+                    <div class="progress-item">
+                        <div class="progress-label">
+                            <span class="category-name">General</span>
+                            <span class="category-percent" id="general-percent">0%</span>
+                        </div>
+                        <div class="progress">
+                            <div class="progress-bar" id="general-progress" 
+                                 style="background-color: #a37ef7;" role="progressbar"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Maths Progress -->
+                    <div class="progress-item">
+                        <div class="progress-label">
+                            <span class="category-name">Maths</span>
+                            <span class="category-percent" id="maths-percent">0%</span>
+                        </div>
+                        <div class="progress">
+                            <div class="progress-bar" id="maths-progress" 
+                                 style="background-color: #3b82f6;" role="progressbar"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Physics Progress -->
+                    <div class="progress-item">
+                        <div class="progress-label">
+                            <span class="category-name">Physics</span>
+                            <span class="category-percent" id="physics-percent">0%</span>
+                        </div>
+                        <div class="progress">
+                            <div class="progress-bar" id="physics-progress" 
+                                 style="background-color: #f2f763;" role="progressbar"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- ICT Progress -->
+                    <div class="progress-item">
+                        <div class="progress-label">
+                            <span class="category-name">ICT</span>
+                            <span class="category-percent" id="ict-percent">0%</span>
+                        </div>
+                        <div class="progress">
+                            <div class="progress-bar" id="ict-progress" 
+                                 style="background-color: #f5517a;" role="progressbar"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script>
+        
+            const allGraphData = [{"date": "2025-06-29", "display_date": "2025-06-29", "hours": 10.0, "category": "General"}, {"date": "2025-06-30", "display_date": "2025-06-30", "hours": 9.0, "category": "General"}, {"date": "2025-07-01", "display_date": "2025-07-01", "hours": 8.0, "category": "General"}, {"date": "2025-07-02", "display_date": "2025-07-02", "hours": 6.0, "category": "Maths"}, {"date": "2025-07-03", "display_date": "2025-07-03", "hours": 12.0, "category": "Physics"}, {"date": "2025-07-04", "display_date": "2025-07-04", "hours": 2.0, "category": "ICT"}, {"date": "2025-07-05", "display_date": "2025-07-05", "hours": 1.1, "category": "General"}, {"date": "2025-07-06", "display_date": "2025-07-06", "hours": 0.08, "category": "General"}, {"date": "2025-07-06", "display_date": "2025-07-06", "hours": 0.02, "category": "ICT"}, {"date": "2025-07-06", "display_date": "2025-07-06", "hours": 0.02, "category": "Physics"}];
+            const dailyGoal = 2;
+            const defaultStartDate = "2025-06-30";
+            const defaultEndDate = "2025-07-06";
+            
+        
+        // Global variables
+        let currentChart;
+        let currentFilter = "week";
+        let currentStartDate, currentEndDate;
+        let dateRangePicker;
+        let activeCategories = ['Total']; 
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize date picker
+            dateRangePicker = flatpickr("#date-range", {
+                mode: "range",
+                dateFormat: "Y-m-d",
+                defaultDate: getDefaultWeekRange(),
+                theme: "dark",
+                onClose: function(selectedDates) {
+                    if (selectedDates.length === 2) {
+                        currentStartDate = selectedDates[0];
+                        currentEndDate = selectedDates[1];
+                        currentFilter = "custom"; // Switch to custom when dates are manually selected
+                        document.getElementById('time-filter').value = 'custom';
+                        updateChart();
+                    }
+                }
+            });
+            
+            // Set initial dates from picker
+            const initialDates = dateRangePicker.selectedDates;
+            currentStartDate = initialDates[0];
+            currentEndDate = initialDates[1];
+            
+            // Set week as default selected in dropdown
+            document.getElementById('time-filter').value = 'week';
+            
+            // Event listeners
+            document.getElementById('time-filter').addEventListener('change', function() {
+                currentFilter = this.value;
+                updateDateRangeForFilter();
+                updateChart();
+            });
+            
+            document.getElementById('prev-period').addEventListener('click', function() {
+                navigatePeriod(-1);
+            });
+            
+            document.getElementById('next-period').addEventListener('click', function() {
+                navigatePeriod(1);
+            });
+            
+            // Category toggle event listeners
+            document.querySelectorAll('.category-toggle:not(.total)').forEach(toggle => {
+                toggle.addEventListener('click', function() {
+                    const category = this.dataset.category;
+                    this.classList.toggle('active');
+                    
+                    if (this.classList.contains('active')) {
+                        if (!activeCategories.includes(category)) {
+                            activeCategories.push(category);
+                        }
+                    } else {
+                        activeCategories = activeCategories.filter(c => c !== category);
+                    }
+                    
+                    updateChart();
+                });
+            });
+            
+            // Initial chart render
+            updateChart();
+        });
+        
+        function getDefaultWeekRange() {
+            const today = new Date();
+            const day = today.getDay();
+            const diff = today.getDate() - day + (day === 0 ? -6 : 1);
+            const startDate = new Date(today.setDate(diff));
+            const endDate = new Date(startDate);
+            endDate.setDate(startDate.getDate() + 7);
+            return [startDate, endDate];
+        }
+        
+        function updateDateRangeForFilter() {
+            const today = new Date();
+            
+            if (currentFilter === 'week') {
+                // Start of week (Monday)
+                const day = today.getDay();
+                const diff = today.getDate() - day + (day === 0 ? -6 : 1);
+                currentStartDate = new Date(today.setDate(diff));
+                currentEndDate = new Date(currentStartDate);
+                currentEndDate.setDate(currentStartDate.getDate() + 7);
+            } else if (currentFilter === 'month') {
+                currentStartDate = new Date(today.getFullYear(), today.getMonth(), 1);
+                currentEndDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+            } else if (currentFilter === 'year') {
+                currentStartDate = new Date(today.getFullYear(), 0, 1);
+                currentEndDate = new Date(today.getFullYear(), 11, 31);
+            } else if (currentFilter === 'custom') {
+                // Keep current dates for custom range
+                return;
+            }
+            
+            // Update the date picker
+            dateRangePicker.setDate([currentStartDate, currentEndDate]);
+        }
+        
+        function navigatePeriod(direction) {
+            if (currentFilter === 'week') {
+                currentStartDate.setDate(currentStartDate.getDate() + (direction * 7));
+                currentEndDate.setDate(currentEndDate.getDate() + (direction * 7));
+            } else if (currentFilter === 'month') {
+                currentStartDate.setMonth(currentStartDate.getMonth() + direction);
+                currentEndDate = new Date(
+                    currentStartDate.getFullYear(), 
+                    currentStartDate.getMonth() + 1, 
+                    0
+                );
+            } else if (currentFilter === 'year') {
+                currentStartDate.setFullYear(currentStartDate.getFullYear() + direction);
+                currentEndDate.setFullYear(currentEndDate.getFullYear() + direction);
+            } else if (currentFilter === 'custom') {
+                const diff = Math.floor((currentEndDate - currentStartDate) / (1000 * 60 * 60 * 24)) + 1;
+                currentStartDate.setDate(currentStartDate.getDate() + (direction * diff));
+                currentEndDate.setDate(currentEndDate.getDate() + (direction * diff));
+            }
+            
+            // Update the date picker
+            dateRangePicker.setDate([currentStartDate, currentEndDate]);
+            updateChart();
+        }
+        
+        function updateChart() {
+            // Filter data for current range
+            const filteredData = allGraphData.filter(item => {
+                const itemDate = new Date(item.date);
+                return itemDate >= currentStartDate && itemDate <= currentEndDate;
+            });
+            
+            // Get all dates in the range
+            const allDates = getAllDatesInRange(currentStartDate, currentEndDate);
+            
+            // Get all available categories
+            const allCategories = [...new Set(allGraphData.map(item => item.category))];
+            
+            // Prepare data structure
+            const dataByDate = {};
+            allDates.forEach(date => {
+                dataByDate[date] = {};
+                allCategories.forEach(category => {
+                    dataByDate[date][category] = 0;
+                });
+            });
+            
+            // Populate with actual data
+            filteredData.forEach(item => {
+                const date = item.date;
+                if (dataByDate[date]) {
+                    dataByDate[date][item.category] = item.hours;
+                }
+            });
+            
+            // Calculate totals
+            const totals = {};
+            allDates.forEach(date => {
+                totals[date] = Object.values(dataByDate[date]).reduce((a, b) => a + b, 0);
+            });
+            
+            // Create datasets - Total is always first and always visible
+            const datasets = [
+                {
+                    label: 'Total',
+                    data: allDates.map(date => totals[date]),
+                    backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                    borderColor: 'rgba(16, 185, 129, 0.8)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    borderDash: [5, 5],
+                    hidden: false
+                }
+            ];
+            
+            // Add other categories based on active toggles
+            allCategories.forEach(category => {
+                datasets.push({
+                    label: category,
+                    data: allDates.map(date => dataByDate[date][category]),
+                    backgroundColor: getCategoryColor(category),
+                    borderColor: getCategoryColor(category),
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.4,
+                    hidden: !activeCategories.includes(category)
+                });
+            });
+            
+            // Format labels based on filter
+            const labels = formatLabels(allDates, currentFilter);
+            
+            // Calculate stats
+            updateStats(filteredData);
+            
+            // Create or update chart
+            const ctx = document.getElementById('progress-chart').getContext('2d');
+            
+            if (currentChart) {
+                currentChart.data.labels = labels;
+                currentChart.data.datasets = datasets;
+                currentChart.update();
+            } else {
+                currentChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: datasets
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return `${context.dataset.label}: ${context.raw.toFixed(1)} hours`;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                grid: { color: 'rgba(255,255,255,0.1)' },
+                                ticks: { color: '#a1a1aa' }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                grid: { color: 'rgba(255,255,255,0.1)' },
+                                ticks: { color: '#a1a1aa' },
+                                title: {
+                                    display: true,
+                                    text: 'Hours',
+                                    color: '#a1a1aa'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+            
+            // Add goal line
+            addGoalLine(currentChart, dailyGoal);
+            updateCategoryProgress(filteredData);
+        }
+
+        function updateCategoryProgress(filteredData) {
+            // Calculate total hours for the period
+            const totalHours = filteredData.reduce((sum, item) => sum + item.hours, 0);
+            
+            if (totalHours > 0) {
+                // Calculate category totals
+                const categoryTotals = {};
+                filteredData.forEach(item => {
+                    if (!categoryTotals[item.category]) {
+                        categoryTotals[item.category] = 0;
+                    }
+                    categoryTotals[item.category] += item.hours;
+                });
+                
+                // Update progress bars
+                ['General', 'Maths', 'Physics', 'ICT'].forEach(category => {
+                    const percent = categoryTotals[category] ? 
+                        Math.round((categoryTotals[category] / totalHours) * 100) : 0;
+                    
+                    document.getElementById(`${category.toLowerCase()}-percent`).textContent = `${percent}%`;
+                    document.getElementById(`${category.toLowerCase()}-progress`).style.width = `${percent}%`;
+                });
+            } else {
+                // Reset if no data
+                ['General', 'Maths', 'Physics', 'ICT'].forEach(category => {
+                    document.getElementById(`${category.toLowerCase()}-percent`).textContent = '0%';
+                    document.getElementById(`${category.toLowerCase()}-progress`).style.width = '0%';
+                });
+            }
+        }
+        
+        function getAllDatesInRange(startDate, endDate) {
+            const dates = [];
+            const currentDate = new Date(startDate);
+            
+            while (currentDate <= endDate) {
+                dates.push(currentDate.toISOString().split('T')[0]);
+                currentDate.setDate(currentDate.getDate() + 1);
+            }
+            
+            return dates;
+        }
+        
+        function formatLabels(dates, filterType) {
+            if (filterType === 'week') {
+                const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                return dates.map(date => {
+                    const d = new Date(date);
+                    return dayNames[d.getDay()];
+                });
+            } else if (filterType === 'month') {
+                return dates.map(date => {
+                    const d = new Date(date);
+                    return d.getDate().toString();
+                });
+            } else if (filterType === 'year') {
+                const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                const monthMap = {};
+                
+                dates.forEach(date => {
+                    const d = new Date(date);
+                    const month = d.getMonth();
+                    monthMap[month] = monthNames[month];
+                });
+                
+                return Object.values(monthMap);
+            }
+            
+            // For custom range, use full dates
+            return dates;
+        }
+        
+        function updateStats(data) {
+            // Calculate total hours
+            const totalHours = data.reduce((sum, item) => sum + item.hours, 0);
+            
+            // Calculate daily average
+            const uniqueDays = [...new Set(data.map(item => item.date))].length;
+            const dailyAvg = uniqueDays > 0 ? totalHours / uniqueDays : 0;
+            
+            // Calculate goal progress
+            const goalProgress = uniqueDays > 0 ? 
+                Math.min(100, (dailyAvg / dailyGoal) * 100) : 0;
+            
+            // Update UI
+            document.getElementById('total-hours').textContent = `${totalHours.toFixed(1)}h`;
+            document.getElementById('daily-avg').textContent = `${dailyAvg.toFixed(1)}h`;
+            document.getElementById('goal-progress').textContent = `${goalProgress.toFixed(0)}%`;
+        }
+        
+        function getCategoryColor(category) {
+            const colors = {
+                'Maths': 'rgba(59, 130, 246, 0.7)',
+                'Physics': 'rgba(248, 255, 59, 0.7)',
+                'ICT': 'rgba(237, 21, 72, 0.7)',
+                'General': 'rgba(139, 92, 246, 0.7)'
+            };
+            return colors[category] || 'rgba(156, 163, 175, 0.7)';
+        }
+        
+        function addGoalLine(chart, goal) {
+            if (!chart.options.plugins) {
+                chart.options.plugins = {};
+            }
+            
+            chart.options.plugins.annotation = {
+                annotations: {
+                    goalLine: {
+                        type: 'line',
+                        yMin: goal,
+                        yMax: goal,
+                        borderColor: 'rgba(239, 68, 68, 0.7)',
+                        borderWidth: 2,
+                        borderDash: [6, 6],
+                        label: {
+                            content: `Daily Goal: ${goal}h`,
+                            enabled: true,
+                            position: 'right',
+                            backgroundColor: 'rgba(239, 68, 68, 0.7)'
+                        }
+                    }
+                }
+            };
+            chart.update();
+        }
+
+        function returnToApp() {
+            window.location.href = 'focuspro://open';
+    }
+    </script>
+</body>
+</html>

@@ -1,0 +1,5 @@
+customtkinter
+pygame
+numpy
+python-dateutil
+plyer
