@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FocusPro — Deep Focus Tracker & Study Timer for Windows</title>
+  <meta name="description" content="FocusPro is your ultimate productivity companion: a deep focus session tracker, goal streak motivator, and study timer — built for high-performance minds." />
+  <meta name="keywords" content="focuspro, focus timer, pomodoro, productivity, study tracker, focus streak, infinity minds, kusal darshana" />
+  <meta name="author" content="Infinity Minds, creators of What's The Time" />
+  <meta property="og:title" content="FocusPro — Deep Focus Session Tracker & Streak Visualizer" />
+  <meta property="og:description" content="Build focus streaks, hit your daily goals, and track progress beautifully. FocusPro: built for learners, makers, and dreamers." />
+  <meta property="og:url" content="https://focuspro.whatsthetime.online" />
+  <meta property="og:type" content="website" />
+
+  <link rel="shortcut icon" href="/focuspro.ico" type="image/x-icon">
+
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "FocusPro",
+      "operatingSystem": "Windows 10, Windows 11",
+      "applicationCategory": "ProductivityApplication",
+      "description": "FocusPro helps you track deep work sessions, monitor streaks, visualize daily goals, and stay motivated to focus on what matters most.",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD",
+        "availability": "https://schema.org/InStock",
+        "url": "https://focuspro.whatsthetime.online/installer/FocusProSetup.exe"
+      },
+      "downloadUrl": "https://focuspro.whatsthetime.online/installer/FocusProSetup.exe",
+      "softwareVersion": "1.0",
+      "creator": {
+        "@type": "Organization",
+        "name": "Infinity Minds",
+        "url": "https://focuspro.whatsthetime.online"
+      }
+    }
+  </script>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0b0b0b;
+      color: #f1f1f1;
+      line-height: 1.6;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background: #111111;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      border-bottom: 1px solid #222;
+    }
+
+    .logo {
+      display: flex;
+      gap: 5px;
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: #ffffff;
+    }
+
+    nav a {
+      color: #ccc;
+      text-decoration: none;
+      margin-left: 1.5rem;
+      font-size: 0.95rem;
+    }
+
+    nav a:hover {
+      color: #ffffff;
+    }
+
+    main {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4rem 2rem;
+      text-align: center;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 1.5rem;
+      padding: 3rem 2rem;
+      max-width: 600px;
+      width: 100%;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+      animation: fadeIn 1.2s ease-in-out;
+    }
+
+    h1 {
+      font-size: 2.2rem;
+      margin-bottom: 0.5rem;
+    }
+
+    p {
+      color: #bbbbbb;
+      font-size: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    a{
+      text-decoration: none;
+      color: #fff;
+    }
+
+    .download-btn {
+      background: #0ec761;
+      border: 1px solid #333;
+      color: #1d1d1d;
+      font-weight: bold;
+      padding: 0.85rem 1.75rem;
+      font-size: 1rem;
+      border-radius: 0.75rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-decoration: none;
+      display: inline-block;
+      margin-top: 1rem;
+    }
+
+    .download-btn:hover {
+      background: #ffffff;
+      color: #0b0b0b;
+      transform: scale(1.05);
+    }
+
+    .source-btn {
+        display: inline-block;
+        margin-top: 1.5rem;
+        padding: 0.6rem 1.25rem;
+        background: transparent;
+        color: #fff;
+        border: 1px solid #999;
+        border-radius: 0.6rem;
+        font-size: 0.95rem;
+        text-decoration: none;
+        transition: all 0.2s ease;
+      }                                
+  
+    .source-btn:hover {
+        background: #fff;
+        color: #0b0b0b;
+        border-color: #fff;
+        transform: scale(1.04);
+      }
+
+    .source-btn:active {
+      transform: scale(0.98);
+    }
+
+    footer {
+      background: #111;
+      text-align: center;
+      padding: 1.25rem;
+      font-size: 0.9rem;
+      color: #777;
+      border-top: 1px solid #222;
+    }
+
+    @keyframes fadeIn {
+      0% {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 1.75rem;
+      }
+
+      .download-btn {
+        padding: 0.75rem 1.5rem;
+        font-size: 0.95rem;
+      }
+
+      nav a {
+        margin-left: 1rem;
+      }
+
+      .card {
+        padding: 2rem 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo">
+      <img src="/focuspro.ico" alt="FocusPro Logo" style="width: 24px; height: 24px;">
+      <a href="/">FocusPro</a>
+    </div>
+    <nav>
+      <a href="https://whatsthetime.online" target="_blank">What's The Time</a>
+      <a href="https://chargedose.whatsthetime.online">ChargeDose</a>
+    </nav>
+  </header>
+
+  <main>
+    <div class="card">
+      <h1>Ultimate Productivity with FocusPro</h1>
+      <p>
+        FocusPro is your personal study tracker, focus timer, and motivation engine — designed to help you build deep work streaks, track progress, and stay in the zone.
+      </p>
+      <p><em>Built with care by the team behind <a href="https://whatsthetime.online" target="_blank" style="color: #fff;">What's The Time</a>.</em></p>
+      <a id="download" href="/installer/FocusProSetup.exe" class="download-btn" download>⬇️ Download FocusPro for Windows</a>
+      <p style="margin-top: 1rem; color: #666;">Version 1.0 • Works on Windows 10/11</p>
+    </div>
+  </main>
+
+  <footer>
+    &copy; 2025 Infinity Minds • <a style="color: #777;" href="https://whatsthetime.online">whatsthetime</a> • All rights reserved • Crafted in Sri Lanka 🇱🇰 <br>
+    <a href="https://github.com/thekusaldarshana/FocusPro" target="_blank" class="source-btn">🛠 Source Code</a>
+  </footer>
+
+</body>
+</html>
