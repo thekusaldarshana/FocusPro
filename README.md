@@ -1,4 +1,6 @@
-# ![Infinity FocusPro Logo](focuspro.ico) Infinity FocusPro
+# Infinity FocusPro
+
+![Infinity FocusPro Logo](focuspro.ico) 
 
 A productivity-focused desktop application for managing focus sessions with analytics.
 
