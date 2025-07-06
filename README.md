@@ -1,6 +1,4 @@
-# Infinity FocusPro
-
-![Infinity FocusPro Logo](focuspro.ico)
+# ![Infinity FocusPro Logo](focuspro.ico) Infinity FocusPro
 
 A productivity-focused desktop application for managing focus sessions with analytics.
 
@@ -123,24 +121,4 @@ MIT License - See [LICENSE](LICENSE) file
 
 **Created with ❤️ by Infinity Minds**  
 [Report Issues](https://github.com/thekusaldarshana/FocusPro/issues)
-```
 
-### Key Sections Included:
-1. **Visual branding** with icon
-2. **Clear installation instructions** for both users and developers
-3. **Developer documentation** with:
-   - Project structure
-   - Technology stack
-   - Data schema
-   - Contribution guidelines
-4. **Troubleshooting** common issues
-5. **Keyboard shortcuts** for power users
-
-### Recommended Additional Files:
-1. Create a `requirements.txt` with:
-```
-customtkinter>=5.2.0
-pygame>=2.5.0
-plyer>=2.1.0
-numpy>=1.26.0
-```
