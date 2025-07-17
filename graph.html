@@ -407,12 +407,37 @@
         
         function getDefaultWeekRange() {
             const today = new Date();
-            const day = today.getDay();
-            const diff = today.getDate() - day + (day === 0 ? -6 : 1);
-            const startDate = new Date(today.setDate(diff));
+            const day = today.getDay(); // 0 for Sunday, 1 for Monday, etc.
+            const startDate = new Date(today);
+            startDate.setDate(today.getDate() - day); // Set to the most recent Sunday
             const endDate = new Date(startDate);
-            endDate.setDate(startDate.getDate() + 7);
+            endDate.setDate(startDate.getDate() + 7); // End date will be the next Sunday (exclusive)
             return [startDate, endDate];
+        }
+
+        function getMonthlyAggregatedData(data, year) {
+            const monthlyData = {};
+            for (let i = 0; i < 12; i++) {
+                monthlyData[i] = { 'Total': 0 };
+                // Initialize all categories for each month
+                const allCategories = [...new Set(allGraphData.map(item => item.category))];
+                allCategories.forEach(category => {
+                    monthlyData[i][category] = 0;
+                });
+            }
+
+            data.forEach(item => {
+                const itemDate = new Date(item.date);
+                if (itemDate.getFullYear() === year) {
+                    const month = itemDate.getMonth();
+                    monthlyData[month]['Total'] += item.hours;
+                    if (item.category in monthlyData[month]) {
+                        monthlyData[month][item.category] += item.hours;
+                    }
+                }
+            });
+
+            return monthlyData;
         }
         
         function updateDateRangeForFilter() {
@@ -466,129 +491,179 @@
         }
         
         function updateChart() {
-            // Filter data for current range
-            const filteredData = allGraphData.filter(item => {
-                const itemDate = new Date(item.date);
-                return itemDate >= currentStartDate && itemDate <= currentEndDate;
+    // Filter data for current range
+    const filteredData = allGraphData.filter(item => {
+        const itemDate = new Date(item.date);
+        return itemDate >= currentStartDate && itemDate <= currentEndDate;
+    });
+
+    let labels;
+    let datasets = [];
+
+    if (currentFilter === 'year') {
+        const year = currentStartDate.getFullYear();
+        const monthlyData = getMonthlyAggregatedData(filteredData, year);
+        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        labels = monthNames; // Labels are now months
+
+        // Add Total dataset for year view
+        datasets.push({
+            label: 'Total',
+            data: labels.map((_, index) => monthlyData[index]['Total']),
+            backgroundColor: 'rgba(16, 185, 129, 0.2)',
+            borderColor: 'rgba(16, 185, 129, 0.8)',
+            borderWidth: 3,
+            fill: true,
+            tension: 0.4,
+            borderDash: [5, 5],
+            hidden: false
+        });
+
+        // Add other categories for year view
+        const allCategories = [...new Set(allGraphData.map(item => item.category))];
+        allCategories.forEach(category => {
+            datasets.push({
+                label: category,
+                data: labels.map((_, index) => monthlyData[index][category]),
+                backgroundColor: getCategoryColor(category),
+                borderColor: getCategoryColor(category),
+                borderWidth: 2,
+                fill: true,
+                tension: 0.4,
+                hidden: !activeCategories.includes(category)
             });
-            
-            // Get all dates in the range
-            const allDates = getAllDatesInRange(currentStartDate, currentEndDate);
-            
-            // Get all available categories
-            const allCategories = [...new Set(allGraphData.map(item => item.category))];
-            
-            // Prepare data structure
-            const dataByDate = {};
-            allDates.forEach(date => {
-                dataByDate[date] = {};
-                allCategories.forEach(category => {
-                    dataByDate[date][category] = 0;
-                });
-            });
-            
-            // Populate with actual data
-            filteredData.forEach(item => {
-                const date = item.date;
-                if (dataByDate[date]) {
-                    dataByDate[date][item.category] = item.hours;
-                }
-            });
-            
-            // Calculate totals
-            const totals = {};
-            allDates.forEach(date => {
-                totals[date] = Object.values(dataByDate[date]).reduce((a, b) => a + b, 0);
-            });
-            
-            // Create datasets - Total is always first and always visible
-            const datasets = [
-                {
-                    label: 'Total',
-                    data: allDates.map(date => totals[date]),
-                    backgroundColor: 'rgba(16, 185, 129, 0.2)',
-                    borderColor: 'rgba(16, 185, 129, 0.8)',
-                    borderWidth: 3,
-                    fill: true,
-                    tension: 0.4,
-                    borderDash: [5, 5],
-                    hidden: false
-                }
-            ];
-            
-            // Add other categories based on active toggles
+        });
+
+    } else {
+        // Existing logic for 'week', 'month', 'custom' filters (daily data)
+        const allDates = getAllDatesInRange(currentStartDate, currentEndDate);
+
+        // Get all available categories from allGraphData to ensure all are initialized
+        const allCategories = [...new Set(allGraphData.map(item => item.category))];
+
+        const dataByDate = {};
+        // Initialize dataByDate for all dates and categories
+        allDates.forEach(date => {
+            dataByDate[date] = {};
             allCategories.forEach(category => {
-                datasets.push({
-                    label: category,
-                    data: allDates.map(date => dataByDate[date][category]),
-                    backgroundColor: getCategoryColor(category),
-                    borderColor: getCategoryColor(category),
-                    borderWidth: 2,
-                    fill: true,
-                    tension: 0.4,
-                    hidden: !activeCategories.includes(category)
-                });
+                dataByDate[date][category] = 0;
             });
-            
-            // Format labels based on filter
-            const labels = formatLabels(allDates, currentFilter);
-            
-            // Calculate stats
-            updateStats(filteredData);
-            
-            // Create or update chart
-            const ctx = document.getElementById('progress-chart').getContext('2d');
-            
-            if (currentChart) {
-                currentChart.data.labels = labels;
-                currentChart.data.datasets = datasets;
-                currentChart.update();
-            } else {
-                currentChart = new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: labels,
-                        datasets: datasets
+        });
+
+        filteredData.forEach(item => {
+            const date = item.date;
+            if (dataByDate[date]) {
+                dataByDate[date][item.category] = item.hours;
+            }
+        });
+
+        const totals = {};
+        allDates.forEach(date => {
+            totals[date] = Object.values(dataByDate[date]).reduce((a, b) => a + b, 0);
+        });
+
+        datasets.push({
+            label: 'Total',
+            data: allDates.map(date => totals[date]),
+            backgroundColor: 'rgba(16, 185, 129, 0.2)',
+            borderColor: 'rgba(16, 185, 129, 0.8)',
+            borderWidth: 3,
+            fill: true,
+            tension: 0.4,
+            borderDash: [5, 5],
+            hidden: false
+        });
+
+        allCategories.forEach(category => {
+            datasets.push({
+                label: category,
+                data: allDates.map(date => dataByDate[date][category]),
+                backgroundColor: getCategoryColor(category),
+                borderColor: getCategoryColor(category),
+                borderWidth: 2,
+                fill: true,
+                tension: 0.4,
+                hidden: !activeCategories.includes(category)
+            });
+        });
+
+        labels = formatLabels(allDates, currentFilter);
+    }
+
+    // Calculate stats
+    updateStats(filteredData);
+
+    // Create or update chart
+    const ctx = document.getElementById('progress-chart').getContext('2d');
+
+    if (currentChart) {
+        currentChart.data.labels = labels;
+        currentChart.data.datasets = datasets;
+        currentChart.update();
+    } else {
+        currentChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: datasets
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
                     },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                display: false
-                            },
-                            tooltip: {
-                                callbacks: {
-                                    label: function(context) {
-                                        return `${context.dataset.label}: ${context.raw.toFixed(1)} hours`;
-                                    }
-                                }
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return `${context.dataset.label}: ${context.raw.toFixed(1)} hours`;
                             }
-                        },
-                        scales: {
-                            x: {
-                                grid: { color: 'rgba(255,255,255,0.1)' },
-                                ticks: { color: '#a1a1aa' }
-                            },
-                            y: {
-                                beginAtZero: true,
-                                grid: { color: 'rgba(255,255,255,0.1)' },
-                                ticks: { color: '#a1a1aa' },
-                                title: {
-                                    display: true,
-                                    text: 'Hours',
-                                    color: '#a1a1aa'
+                        }
+                    },
+                    annotation: { // Ensure annotation plugin is loaded (you might need to include it)
+                        annotations: {
+                            goalLine: {
+                                type: 'line',
+                                yMin: dailyGoal,
+                                yMax: dailyGoal,
+                                borderColor: 'rgba(239, 68, 68, 0.7)',
+                                borderWidth: 2,
+                                borderDash: [6, 6],
+                                label: {
+                                    content: `Daily Goal: ${dailyGoal}h`,
+                                    enabled: true,
+                                    position: 'right',
+                                    backgroundColor: 'rgba(239, 68, 68, 0.7)'
                                 }
                             }
                         }
                     }
-                });
+                },
+                scales: {
+                    x: {
+                        grid: { color: 'rgba(255,255,255,0.1)' },
+                        ticks: { color: '#a1a1aa' }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(255,255,255,0.1)' },
+                        ticks: { color: '#a1a1aa' },
+                        title: {
+                            display: true,
+                            text: 'Hours',
+                            color: '#a1a1aa'
+                        }
+                    }
+                }
             }
-            
-            // Add goal line
-            addGoalLine(currentChart, dailyGoal);
-            updateCategoryProgress(filteredData);
-        }
+        });
+    }
+
+    // Add goal line
+    addGoalLine(currentChart, dailyGoal);
+    updateCategoryProgress(filteredData);
+}
 
         function updateCategoryProgress(filteredData) {
             // Calculate total hours for the period
