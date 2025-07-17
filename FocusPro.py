@@ -1771,16 +1771,16 @@ class FocusSessionApp:
     def calculate_streak(self):
         """Calculate current streak"""
         # Get last 30 days of data
-        end_date = datetime.date.today()
-        start_date = end_date - datetime.timedelta(days=30)
+        end_date = datetime.date.today() - datetime.timedelta(days=1)
+        # start_date = end_date - datetime.timedelta(days=30)
         
         self.cursor.execute('''
             SELECT date, SUM(completed) as total_minutes
             FROM sessions 
-            WHERE date >= ? AND date <= ?
+            WHERE date <= ?
             GROUP BY date
             ORDER BY date DESC
-        ''', (start_date.isoformat(), end_date.isoformat()))
+        ''', (end_date.isoformat(),))
         
         results = self.cursor.fetchall()
         daily_goal_minutes = self.daily_goal * 60
