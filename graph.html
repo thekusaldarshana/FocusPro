@@ -343,7 +343,11 @@
         let activeCategories = ['Total']; 
         
         document.addEventListener('DOMContentLoaded', function() {
-            // Initialize date picker
+            // Initialize with "week" filter selected
+            //document.getElementById('time-filter').value = 'custom';
+            //currentFilter = 'custom';
+            
+            // Initialize date picker with Monday-to-Sunday week
             dateRangePicker = flatpickr("#date-range", {
                 mode: "range",
                 dateFormat: "Y-m-d",
@@ -353,7 +357,7 @@
                     if (selectedDates.length === 2) {
                         currentStartDate = selectedDates[0];
                         currentEndDate = selectedDates[1];
-                        currentFilter = "custom"; // Switch to custom when dates are manually selected
+                        currentFilter = "custom";
                         document.getElementById('time-filter').value = 'custom';
                         updateChart();
                     }
@@ -409,9 +413,9 @@
             const today = new Date();
             const day = today.getDay(); // 0 for Sunday, 1 for Monday, etc.
             const startDate = new Date(today);
-            startDate.setDate(today.getDate() - day); // Set to the most recent Sunday
+            startDate.setDate(today.getDate() - day - 7); // Start from previous Sunday
             const endDate = new Date(startDate);
-            endDate.setDate(startDate.getDate() + 7); // End date will be the next Sunday (exclusive)
+            endDate.setDate(startDate.getDate() + 14); // Two weeks to ensure we cover current week's Sunday
             return [startDate, endDate];
         }
 
@@ -444,12 +448,16 @@
             const today = new Date();
             
             if (currentFilter === 'week') {
-                // Start of week (Monday)
+                // Find the most recent Monday
                 const day = today.getDay();
-                const diff = today.getDate() - day + (day === 0 ? -6 : 1);
-                currentStartDate = new Date(today.setDate(diff));
-                currentEndDate = new Date(currentStartDate);
-                currentEndDate.setDate(currentStartDate.getDate() + 7);
+                const diff = today.getDate() - day + (day === 0 ? -6 : 1); // Adjust to get Monday
+                const monday = new Date(today.setDate(diff));
+                
+                // Set range from previous Sunday to next Sunday
+                currentStartDate = new Date(monday);
+                currentStartDate.setDate(monday.getDate() - 1); // Previous Sunday
+                currentEndDate = new Date(monday);
+                currentEndDate.setDate(monday.getDate() + 7); // Next Sunday
             } else if (currentFilter === 'month') {
                 currentStartDate = new Date(today.getFullYear(), today.getMonth(), 1);
                 currentEndDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
@@ -710,7 +718,22 @@
         
         function formatLabels(dates, filterType) {
             if (filterType === 'week') {
-                const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+                // Find the index of the first Monday in the date range
+                let mondayIndex = dates.findIndex(date => {
+                    const d = new Date(date);
+                    return d.getDay() === 1; // Monday
+                });
+                
+                // If we found a Monday, return labels starting from the previous Sunday
+                if (mondayIndex > 0) {
+                    return dates.slice(mondayIndex - 1, mondayIndex + 7).map(date => {
+                        const d = new Date(date);
+                        return dayNames[d.getDay()];
+                    });
+                }
+                
+                // Fallback to just showing all days with their names
                 return dates.map(date => {
                     const d = new Date(date);
                     return dayNames[d.getDay()];
