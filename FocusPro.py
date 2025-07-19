@@ -7,6 +7,7 @@ import datetime
 import pygame
 import json
 import os
+import subprocess
 import numpy as np
 from plyer import notification
 from dateutil.relativedelta import relativedelta
@@ -81,6 +82,14 @@ def get_appdata_path() -> str:
     data_dir = os.path.join(base, "FocusPro")
     os.makedirs(data_dir, exist_ok=True)
     return data_dir
+
+def open_file(filepath):
+    if sys.platform.startswith("darwin"):  # macOS
+        subprocess.call(('open', filepath))
+    elif sys.platform.startswith("win"):
+        os.startfile(filepath)
+    else:  # Linux
+        subprocess.call(('xdg-open', filepath))
 
 # Configure CustomTkinter
 ctk.set_appearance_mode("dark")
@@ -321,8 +330,11 @@ class TimerApp(ctk.CTkFrame):
                 self.sound_channel = self.end_sound.play()
             else:
                 # Fallback to system beep
-                import winsound
-                winsound.MessageBeep(winsound.MB_ICONEXCLAMATION)
+                if sys.platform.startswith("win"):
+                    import winsound
+                    winsound.MessageBeep(winsound.MB_ICONEXCLAMATION)
+                else:
+                    print('\a')  # ASCII Bell (simple beep on Linux terminals)
         except Exception as e:
             print(f"Error playing sound: {e}")
 
@@ -384,10 +396,10 @@ class FocusSessionApp:
         start_single_instance_server(bring_window_to_front)
 
         # set window icon
-        try:
+        if sys.platform.startswith("win"):
             self.root.wm_iconbitmap(self.resource_path('focuspro.ico'))
-        except Exception as e:
-            print(f"Could not load icon: {e}")
+        else:
+            self.root.iconbitmap('@' + self.resource_path('focuspro.xbm'))
 
         self.root.configure(fg_color="#0a0a0a")
         
@@ -479,15 +491,22 @@ class FocusSessionApp:
             self.timer_button.configure(fg_color="#262626")
 
     def open_database(self):
-        """Open the database file in default application"""
+        """Open the database file in default application (cross-platform)"""
         try:
-            db_path = os.path.join(get_appdata_path(), "focuspro.db")
+            app_data_dir = get_appdata_path()
+            db_path = os.path.join(app_data_dir, "focuspro.db")
+    
             if os.path.exists(db_path):
-                os.startfile(db_path)
+                if sys.platform.startswith("darwin"):  # macOS
+                    subprocess.call(('open', db_path))
+                elif sys.platform.startswith("win"): # Windows
+                    os.startfile(db_path)
+                else:  # Linux & Chromebook (and other Unix-like)
+                    subprocess.call(('xdg-open', db_path))
             else:
-                messagebox.showerror("Error", "Database file not found")
+                messagebox.showerror("Error", "Database file not found") 
         except Exception as e:
-            messagebox.showerror("Error", f"Failed to open database: {str(e)}")
+            messagebox.showerror("Error", f"Failed to open database: {str(e)}") 
 
     def open_website(self):
         import webbrowser
@@ -1260,12 +1279,12 @@ class FocusSessionApp:
         """Generate HTML file and open in browser"""
         try:
             html_content = self.generate_html_with_data()
-            temp_path = os.path.join(tempfile.gettempdir(), "analytics.html")
-            with open(temp_path, "w") as f:
+            # Save in appdata directory
+            appdata_dir = get_appdata_path()
+            html_path = os.path.join(appdata_dir, "analytics.html")
+            with open(html_path, "w") as f:
                 f.write(html_content)
-
-            webbrowser.open(f"file://{temp_path}")
-            
+            webbrowser.open(f"file://{html_path}")
         except Exception as e:
             messagebox.showerror("Error", f"Failed to open analyzer: {str(e)}")
 
