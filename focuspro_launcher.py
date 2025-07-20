@@ -18,7 +18,7 @@ def main():
     
     # Find the FocusPro EXE
     exe_dir = os.path.dirname(os.path.abspath(__file__))
-    focuspro_exe = os.path.join(exe_dir, "Remeinium FocusPro.exe")
+    focuspro_exe = "/opt/remeinium-focuspro/Remeinium FocusPro"
     
     if not os.path.exists(focuspro_exe):
         print("❌ Cannot find FocusPro executable at:", focuspro_exe)
