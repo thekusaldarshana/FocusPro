@@ -75,13 +75,18 @@ def start_single_instance_server(bring_to_front_callback):
 
     threading.Thread(target=server_wrapper, daemon=True).start()
 
-def get_appdata_path() -> str:
-    base = os.path.expandvars(r"%APPDATA%")  # falls back to user home if APPDATA missing
-    if not base or base.startswith("%"):      # sanity check
-        base = os.path.expanduser("~")
-    data_dir = os.path.join(base, "FocusPro")
-    os.makedirs(data_dir, exist_ok=True)
-    return data_dir
+def get_appdata_path():
+    """Get the appropriate user application data directory."""
+    if sys.platform == "win32":
+        return os.path.join(os.environ["APPDATA"], "RemeiniumFocusPro")
+    elif sys.platform == "darwin": # macOS
+        return os.path.join(os.path.expanduser("~/Library/Application Support"), "RemeiniumFocusPro")
+    else: # Linux and other Unix-like systems
+        xdg_data_home = os.environ.get("XDG_DATA_HOME", os.path.join(os.path.expanduser("~"), ".local", "share"))
+        app_data_path = os.path.join(xdg_data_home, "RemeiniumFocusPro")
+
+        os.makedirs(app_data_path, exist_ok=True)
+        return app_data_path
 
 def open_file(filepath):
     if sys.platform.startswith("darwin"):  # macOS
@@ -96,6 +101,14 @@ ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
 
 class TimerApp(ctk.CTkFrame): 
+    def resource_path(self, relative_path):
+        """Get absolute path to resource, works for dev and PyInstaller"""
+        try:
+            base_path = sys._MEIPASS
+        except Exception:
+            base_path = os.path.abspath(".")
+        return os.path.join(base_path, relative_path)
+
     def __init__(self, master):
         super().__init__(
             master, 
@@ -318,14 +331,16 @@ class TimerApp(ctk.CTkFrame):
         try:
             if not pygame.mixer.get_init():
                 pygame.mixer.init()
-            
+
             # Try to load sound file
             try:
-                sound_path = os.path.join(os.path.dirname(__file__), "timer.mp3")
+                # sound_path = os.path.join(os.path.dirname(__file__), "timer.mp3")
+                sound_path = self.resource_path('timer.mp3') 
                 self.end_sound = pygame.mixer.Sound(sound_path)
-            except:
+            except Exception as e: # Exception අල්ලා ගැනීම වැදගත්.
                 self.end_sound = None
-            
+                print(f"Error loading finish sound: {e}") 
+
             if self.end_sound:
                 self.sound_channel = self.end_sound.play()
             else:
@@ -371,8 +386,6 @@ class FocusSessionApp:
         
         # Cross-platform maximize (works on both Windows and Linux)
         self.root.after(100, self.maximize_window)  # Slight delay for stability
-        
-        # Rest of your initialization...
     
     def maximize_window(self):
         """Maximize window in a cross-platform way"""
@@ -396,10 +409,10 @@ class FocusSessionApp:
         start_single_instance_server(bring_window_to_front)
 
         # set window icon
-        if sys.platform.startswith("win"):
-            self.root.wm_iconbitmap(self.resource_path('focuspro.ico'))
-        else:
-            self.root.iconbitmap('@' + self.resource_path('focuspro.xbm'))
+#        if sys.platform.startswith("win"):
+#            self.root.wm_iconbitmap(self.resource_path('focuspro.ico'))
+#        else:
+#            self.root.iconbitmap('@' + self.resource_path('focuspro.xbm'))
 
         self.root.configure(fg_color="#0a0a0a")
         
